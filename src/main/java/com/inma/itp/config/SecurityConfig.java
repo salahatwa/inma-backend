@@ -29,11 +29,8 @@ import com.inma.itp.secuirty.JwtAuthenticationFilter;
 //@EnableGlobalMethodSecurity(securedEnabled = true, jsr250Enabled = true, prePostEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-//	@Autowired
-//	CustomUserDetailsService customUserDetailsService;
-
 	@Autowired
-	private CustomAuthenticationProvider customAuthenticationProvider;
+	private CustomAuthenticationProvider customAuthManager;
 
 	@Autowired
 	private JwtAuthenticationEntryPoint unauthorizedHandler;
@@ -45,8 +42,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 	@Override
 	public void configure(AuthenticationManagerBuilder auth) throws Exception {
-//		authenticationManagerBuilder.userDetailsService(customUserDetailsService).passwordEncoder(passwordEncoder());
-		auth.authenticationProvider(this.customAuthenticationProvider);
+		auth.authenticationProvider(this.customAuthManager);
 	}
 
 	@Bean(BeanIds.AUTHENTICATION_MANAGER)
@@ -69,7 +65,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
 				.antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
 						"/**/*.css", "/**/*.js")
-				.permitAll().antMatchers("/api/auth/**").permitAll()
+				.permitAll().antMatchers("/auth/**").permitAll()
 				.antMatchers(HttpMethod.OPTIONS).permitAll()
 //				.antMatchers("/ws/**").permitAll()
 				.antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/webjars/**").permitAll()

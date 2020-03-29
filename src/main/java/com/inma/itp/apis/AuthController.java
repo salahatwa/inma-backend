@@ -4,12 +4,9 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.inma.itp.exception.InvalidUsernamePasswordException;
 import com.inma.itp.payload.LoginRequest;
 import com.inma.itp.payload.UserData;
+import com.inma.itp.secuirty.CustomAuthenticationProvider;
 import com.inma.itp.secuirty.JwtTokenProvider;
 import com.inma.itp.secuirty.UserPrincipal;
 
@@ -26,20 +24,19 @@ import com.inma.itp.secuirty.UserPrincipal;
 public class AuthController {
 
 	@Autowired
-	AuthenticationManager authenticationManager;
+	private CustomAuthenticationProvider customAuthManager;
 
 	@Autowired
-	PasswordEncoder passwordEncoder;
-
-	@Autowired
-	JwtTokenProvider tokenProvider;
+	private JwtTokenProvider tokenProvider;
+	
+	
 
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 		String jwt = null;
 		UserPrincipal userPrincipal = null;
 		try {
-			Authentication authentication = authenticationManager.authenticate(
+			Authentication authentication = customAuthManager.authenticate(
 					new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
 			SecurityContextHolder.getContext().setAuthentication(authentication);

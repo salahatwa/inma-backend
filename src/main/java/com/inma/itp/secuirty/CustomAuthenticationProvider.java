@@ -20,23 +20,14 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     @Override
     public Authentication authenticate(Authentication authentication) 
       throws AuthenticationException {
-  
+    	
         String name = authentication.getName();
         String password = authentication.getCredentials().toString();
          
-//        if (shouldAuthenticateAgainstThirdPartySystem()) {
-//  
-//            // use the credentials
-//            // and authenticate against the third-party system
-//            return new UsernamePasswordAuthenticationToken(
-//            		UserPrincipal.create(user), password, new ArrayList<>());
-//        } else {
-//            return null;
-//        }
         
-        authService.login(name, password);
+        return new UsernamePasswordAuthenticationToken(
+        		authService.login(name, password), password, new ArrayList<>());
         
-        return null;
     } 
     @Override
     public boolean supports(Class<?> authentication) {
