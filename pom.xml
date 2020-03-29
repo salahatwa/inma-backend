@@ -72,6 +72,13 @@
 			<!-- <version>2.9.5</version> -->
 			<scope>compile</scope>
 		</dependency>
+		
+		<!-- Jackson dependency for XML manipulation -->
+  <dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+    <version>2.9.0</version>
+  </dependency>
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>
