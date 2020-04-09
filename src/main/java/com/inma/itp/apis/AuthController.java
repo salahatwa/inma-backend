@@ -12,15 +12,15 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.inma.itp.config.secuirty.CustomAuthenticationProvider;
+import com.inma.itp.config.secuirty.JwtTokenProvider;
+import com.inma.itp.config.secuirty.UserPrincipal;
 import com.inma.itp.exception.InvalidUsernamePasswordException;
-import com.inma.itp.payload.LoginRequest;
-import com.inma.itp.payload.UserData;
-import com.inma.itp.secuirty.CustomAuthenticationProvider;
-import com.inma.itp.secuirty.JwtTokenProvider;
-import com.inma.itp.secuirty.UserPrincipal;
+import com.inma.itp.models.dto.LoginRequest;
+import com.inma.itp.models.dto.UserData;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("${api.context.path}/auth")
 public class AuthController {
 
 	@Autowired
@@ -28,26 +28,24 @@ public class AuthController {
 
 	@Autowired
 	private JwtTokenProvider tokenProvider;
-	
-	
 
 	@PostMapping("/signin")
 	public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
 		String jwt = null;
 		UserPrincipal userPrincipal = null;
-		try {
-			Authentication authentication = customAuthManager.authenticate(
-					new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
+//		try {
+		Authentication authentication = customAuthManager.authenticate(
+				new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
 
-			SecurityContextHolder.getContext().setAuthentication(authentication);
+		SecurityContextHolder.getContext().setAuthentication(authentication);
 
-			userPrincipal = (UserPrincipal) authentication.getPrincipal();
-			jwt = tokenProvider.generateToken(authentication);
+		userPrincipal = (UserPrincipal) authentication.getPrincipal();
+		jwt = tokenProvider.generateToken(authentication);
 
-		} catch (Exception ex) {
-			throw new InvalidUsernamePasswordException("user " + ex.getMessage(), "Email or Password",
-					loginRequest.getUsername());
-		}
+//		} catch (Exception ex) {
+//			throw new InvalidUsernamePasswordException("user " + ex.getMessage(), "Email or Password",
+//					loginRequest.getUsername());
+//		}
 		return ResponseEntity.ok(new UserData(jwt, userPrincipal));
 	}
 

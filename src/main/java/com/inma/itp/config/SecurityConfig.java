@@ -20,9 +20,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.inma.itp.secuirty.CustomAuthenticationProvider;
-import com.inma.itp.secuirty.JwtAuthenticationEntryPoint;
-import com.inma.itp.secuirty.JwtAuthenticationFilter;
+import com.inma.itp.config.secuirty.CustomAuthenticationProvider;
+import com.inma.itp.config.secuirty.JwtAuthenticationEntryPoint;
+import com.inma.itp.config.secuirty.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -65,7 +65,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS).and().authorizeRequests()
 				.antMatchers("/", "/favicon.ico", "/**/*.png", "/**/*.gif", "/**/*.svg", "/**/*.jpg", "/**/*.html",
 						"/**/*.css", "/**/*.js")
-				.permitAll().antMatchers("/auth/**").permitAll()
+				.permitAll().antMatchers("/api/v1/auth/**").permitAll()
+				.antMatchers("/h2-console/**").permitAll()
 				.antMatchers(HttpMethod.OPTIONS).permitAll()
 //				.antMatchers("/ws/**").permitAll()
 				.antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**", "/webjars/**").permitAll()

@@ -39,11 +39,13 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	public ResourceBundleMessageSource messageSource() {
 
 		ResourceBundleMessageSource source = new ResourceBundleMessageSource();
-		source.setBasenames("messages/messages");
+		source.setBasenames("error-messages/messages");
 		source.setUseCodeAsDefaultMessage(true);
+		source.setDefaultEncoding("UTF-8");
 
 		return source;
 	}
+	
 
 	/**
 	 * For Internazlization Validation error message like javax.validation.NotNull

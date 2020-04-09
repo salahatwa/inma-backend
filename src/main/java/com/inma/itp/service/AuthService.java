@@ -2,54 +2,72 @@ package com.inma.itp.service;
 
 import java.util.List;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.inma.itp.config.secuirty.UserPrincipal;
+import com.inma.itp.exception.ResourceNotFoundException;
+import com.inma.itp.messaging.MessageTemplateService;
 import com.inma.itp.models.Role;
 import com.inma.itp.models.User;
-import com.inma.itp.queue.models.UsrAuthentRq;
-import com.inma.itp.queue.models.UsrAuthentRs;
-import com.inma.itp.queue.models.UsrAuthentRs.Body.BankUsrInfo.RoleInfo;
-import com.inma.itp.secuirty.UserPrincipal;
-import com.inma.itp.xml.XmlTemplateService;
+import com.inma.itp.models.queues.UsrAuthentRq;
+import com.inma.itp.models.queues.UsrAuthentRs;
+import com.inma.itp.models.queues.UsrAuthentRs.Body.BankUsrInfo.RoleInfo;
+import com.inma.itp.repository.UserRepository;
+import com.inma.itp.utils.Security;
 
 @Service
 public class AuthService {
 
 	@Autowired
-	private XmlTemplateService xmlTemplateService;
+	private MessageTemplateService msgTemplateService;
+
+	@Autowired
+	private UserRepository userRepo;
 
 	public UserPrincipal login(String username, String password) {
 
-		try {
+		UsrAuthentRq rq = new UsrAuthentRq("10080000");
+		rq.getBody().getLoginId().setLoginAttribVal(username);
+		rq.getBody().getLoginId().setLoginAttribType("4");
+		// password should be encrypted
+		rq.getBody().getSec().setInfo(Security.byteToHex(Security.getHash(password)));
+		rq.getBody().getSec().setInfoType("1");
 
-			UsrAuthentRq rq = new UsrAuthentRq();
-			rq.getMsgRqHdr().setRqUID("ITP201911197B94DDF8F67CBF2A");
-			rq.getMsgRqHdr().setFuncId("10080000");
-			rq.getMsgRqHdr().setScid("ITP");
-			rq.getBody().getLoginId().setLoginAttribVal("naif01");
-			rq.getBody().getLoginId().setLoginAttribType("4");
-			rq.getBody().getSec().setInfo("18BD4EBD1A9436142D16224C33327A9B8323AC8949AF256D1C37930C6308B2DB");
-			rq.getBody().getSec().setInfoType("1");
+		UsrAuthentRs rs = msgTemplateService.sendMessage(rq, UsrAuthentRs.class);
 
-			UsrAuthentRs rs = xmlTemplateService.sendMessage(rq, UsrAuthentRs.class);
+		User user = new User();
+		user.setId(rs.getBody().getBankUsrInfo().getUsrId());
+		user.setLang(rs.getBody().getBankUsrInfo().getLangPref());
+		user.setDeptCode(rs.getBody().getBankUsrInfo().getDeptCode());
+		user.setNumOfFailedLogins(rs.getBody().getBankUsrInfo().getNumOfFailedLogins());
 
-			
+		List<RoleInfo> roles = rs.getBody().getBankUsrInfo().getRoles();
 
-			User user = new User();
-			user.setId(rs.getBody().getBankUsrInfo().getUsrId());
-			user.setLang(rs.getBody().getBankUsrInfo().getLangPref());
-
-			List<RoleInfo> roles = rs.getBody().getBankUsrInfo().getRoles();
-
-			for (RoleInfo role : roles) {
-				user.getRoles().add(new Role(role.getRoleId()));
-			}
-			return UserPrincipal.create(user);
-		} catch (Exception ex) {
-			ex.printStackTrace();
+		for (RoleInfo role : roles) {
+			user.getRoles().add(new Role(role.getRoleId()));
 		}
-		return null;
+
+		saveUser(user);
+
+		return UserPrincipal.create(user);
+	}
+
+	@Cacheable(value="userCache", key="#id")
+	public UserDetails getUserById(String id) {
+		User user = userRepo.findById(id).orElseThrow(() -> new ResourceNotFoundException("User", "id", id));
+
+		return UserPrincipal.create(user);
+	}
+
+	@Transactional
+	public void saveUser(User user) {
+     if(!userRepo.findById(user.getId()).isPresent())
+		userRepo.save(user);
 	}
 
 }
